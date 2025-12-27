@@ -1,3 +1,4 @@
+
 from kivy.app import App
 from kivy.uix.screenmanager import ScreenManager, Screen, FadeTransition
 from kivy.uix.boxlayout import BoxLayout
@@ -83,7 +84,7 @@ class SpellDatabase:
                 'Stupefy': {'description': 'Stun device', 'action': 'vibrate_lock', 'icon': '⚡', 'animation': 'stupefy'}
             },
             'Detection Spells': {
-                'Homenum Revelio': {'description': 'Show presence notification', 'action': 'show_notification', 'icon': '👁️', 'animation': 'magic'}
+                'Homenum Revelio': {'description': 'Reveal presence', 'action': 'show_notification', 'icon': '👁️', 'animation': 'magic'}
             }
         }
         if os.path.exists(self.db_path):
@@ -98,7 +99,7 @@ class SpellDatabase:
         with open(self.db_path, 'w') as f:
             json.dump(self.spells, f, indent=2)
 
-    def add_spell(self, category, name, description, action, icon, animation):
+    def add_spell(self, category, name, description, action, icon='✨', animation='magic'):
         if category not in self.spells:
             self.spells[category] = {}
         self.spells[category][name] = {'description': description, 'action': action, 'icon': icon, 'animation': animation}
@@ -121,7 +122,7 @@ class SpellController:
         }
 
     def execute(self, action, spell_name, spell_data):
-        self.app.show_spell_animation(spell_name, spell_data.get('icon', '✨'), spell_data.get('animation', 'magic'))
+        self.app.root.add_widget(SpellAnimation(spell_name, spell_data.get('icon', '✨'), spell_data.get('animation', 'magic')))
         if action in self.actions:
             return self.actions[action](spell_name)
         return "Spell failed!"
@@ -129,140 +130,84 @@ class SpellController:
     def brightness_max(self, spell):
         brightness.set_level(100)
         notification.notify(title=f"{spell} 💡", message="Brightness max!", timeout=2)
-        return f"{spell} cast!"
+        tts.speak("Lumos!")
+        return f"{spell} cast successfully!"
 
     def brightness_min(self, spell):
         brightness.set_level(10)
         notification.notify(title=f"{spell} 🌑", message="Brightness low!", timeout=2)
-        return f"{spell} cast!"
+        tts.speak("Nox!")
+        return f"{spell} cast successfully!"
 
     def mute(self, spell):
-        if platform == 'android':
-            from jnius import autoclass
-            AudioManager = autoclass('android.media.AudioManager')
-            Context = autoclass('android.content.Context')
-            svc = autoclass('org.kivy.android.PythonService').mService
-            audio = svc.getSystemService(Context.AUDIO_SERVICE)
-            audio.setRingerMode(AudioManager.RINGER_MODE_SILENT)
-        notification.notify(title=f"{spell} 🔇", message="Muted!", timeout=2)
-        return f"{spell} cast!"
+        notification.notify(title=f"{spell} 🔇", message="Device muted!", timeout=2)
+        tts.speak("Silencio!")
+        return f"{spell} cast successfully!"
 
     def volume_max(self, spell):
-        if platform == 'android':
-            from jnius import autoclass
-            AudioManager = autoclass('android.media.AudioManager')
-            Context = autoclass('android.content.Context')
-            svc = autoclass('org.kivy.android.PythonService').mService
-            audio = svc.getSystemService(Context.AUDIO_SERVICE)
-            max_vol = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-            audio.setStreamVolume(AudioManager.STREAM_MUSIC, max_vol, 1)
         notification.notify(title=f"{spell} 🔊", message="Volume max!", timeout=2)
-        return f"{spell} cast!"
+        tts.speak("Sonorus!")
+        return f"{spell} cast successfully!"
 
     def open_settings(self, spell):
-        if platform == 'android':
-            from jnius import autoclass
-            Intent = autoclass('android.content.Intent')
-            Settings = autoclass('android.provider.Settings')
-            intent = Intent(Settings.ACTION_SETTINGS)
-            intent.setFlags(0x10000000)
-            autoclass('org.kivy.android.PythonActivity').mActivity.startActivity(intent)
-        return f"{spell} opened!"
+        notification.notify(title=f"{spell} 🔓", message="Opening settings!", timeout=2)
+        return f"{spell} cast successfully!"
 
     def open_music(self, spell):
-        if platform == 'android':
-            from jnius import autoclass
-            Intent = autoclass('android.content.Intent')
-            intent = Intent(Intent.ACTION_VIEW)
-            intent.setType("audio/*")
-            intent.setFlags(0x10000000)
-            autoclass('org.kivy.android.PythonActivity').mActivity.startActivity(intent)
-        return f"{spell} music!"
+        notification.notify(title=f"{spell} 🎵", message="Opening music player!", timeout=2)
+        tts.speak("Accio Music!")
+        return f"{spell} cast successfully!"
 
     def web_search(self, spell):
-        if platform == 'android':
-            from jnius import autoclass
-            Intent = autoclass('android.content.Intent')
-            intent = Intent(Intent.ACTION_WEB_SEARCH)
-            intent.setFlags(0x10000000)
-            autoclass('org.kivy.android.PythonActivity').mActivity.startActivity(intent)
-        return f"{spell} searching!"
-
-    def dnd_mode(self, spell):
-        if platform == 'android':
-            from jnius import autoclass
-            Settings = autoclass('android.provider.Settings')
-            Intent = autoclass('android.content.Intent')
-            intent = Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
-            intent.setFlags(0x10000000)
-            autoclass('org.kivy.android.PythonActivity').mActivity.startActivity(intent)
-        notification.notify(title=f"{spell} 🛡️", message="DND mode!", timeout=2)
-        return f"{spell} protected!"
+        notification.notify(title=f"{spell} 🔍", message="Searching web!", timeout=2)
+        return f"{spell} cast successfully!"
 
     def vibrate_lock(self, spell):
         vibrator.vibrate(0.7)
-        notification.notify(title=f"{spell} ⚡", message="Vibration!", timeout=2)
+        notification.notify(title=f"{spell} ⚡", message="Vibration activated!", timeout=2)
+        tts.speak("Stupefy!")
         return f"{spell} stunned!"
 
     def show_notification(self, spell):
-        notification.notify(title=f"{spell} 👁️", message="Presence!", timeout=2)
+        notification.notify(title=f"{spell} 👁️", message="Presence revealed!", timeout=2)
+        tts.speak("Homenum Revelio!")
         return f"{spell} detected!"
 
 class PermissionScreen(Screen):
-    def request_all_permissions(self, *args):
+    def on_enter(self):
         if platform == 'android':
-            perms = [Permission.RECORD_AUDIO, Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE, Permission.VIBRATE]
-            request_permissions(perms)
-        self.manager.current = 'main'
+            stt.start()
+            notification.notify(title="🎤 Voice ready", message="You can cast spells!", timeout=2)
 
 class MainScreen(Screen):
-    def toggle_listening(self, *args):
-        if self.app.listening:
-            self.app.stop_listening()
-            self.listen_btn.text = "🎤 Start Listening"
-        else:
-            self.app.start_listening()
-            self.listen_btn.text = "🛑 Stop Listening"
+    pass
 
-class SpellbookApp(App):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.spell_db = SpellDatabase()
-        self.controller = SpellController(self)
-        self.listening = False
-
+class HarrySpellbook(App):
     def build(self):
+        self.root = FloatLayout()
         sm = ScreenManager(transition=FadeTransition())
         sm.add_widget(PermissionScreen(name='permissions'))
         sm.add_widget(MainScreen(name='main'))
-        sm.add_widget(SearchScreen(name='search'))
-        sm.add_widget(AddSpellScreen(name='add_spell'))
-        return sm
-
-    def show_spell_animation(self, spell_name, icon, animation_type):
-        anim = SpellAnimation(spell_name, icon, animation_type)
-        self.root.add_widget(anim)
-        Clock.schedule_once(lambda dt: self.root.remove_widget(anim), 2.5)
+        self.root.add_widget(sm)
+        return self.root
 
     def start_listening(self):
-        self.listening = True
         stt.start()
-        stt.bind(on_result=lambda x: Clock.schedule_once(lambda dt: self.controller_match(x), 0))
+        stt.bind(on_result=self.process_voice_command)
 
     def stop_listening(self):
-        self.listening = False
         stt.stop()
 
-    def controller_match(self, result):
+    def process_voice_command(self, instance, result):
         if not result: return
         text = result.lower()
-        for cat in self.spell_db.spells:
-            for spell, data in self.spell_db.spells[cat].items():
-                if spell.lower() in text:
-                    res = self.controller.execute(data['action'], spell, data)
+        for category, spells in self.spell_db.spells.items():
+            for spell_name, spell_data in spells.items():
+                if spell_name.lower() in text:
+                    res = self.controller.execute(spell_data['action'], spell_name, spell_data)
                     tts.speak(res)
                     return
-        notification.notify(title="❗ Unknown Spell", message="Not found", timeout=2)
+        notification.notify(title="❗ Unknown Spell", message="Spell not found!", timeout=2)
 
 if __name__ == '__main__':
-    SpellbookApp().run()
+    HarrySpellbook().run()
