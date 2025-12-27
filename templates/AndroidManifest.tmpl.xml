@@ -1,55 +1,49 @@
-<!-- AndroidManifest.xml Template for Persistent Service
-     Place this in: buildozer.spec android.extra_manifest_application_xml
-     Or create templates/AndroidManifest.tmpl.xml -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.magicspells.hpspellbook">
 
-<!-- Add these inside <application> tag -->
+    <application
+        android:label="Harry Potter Spellbook"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true"
+        android:theme="@style/Theme.NoActionBar">
 
-<!-- Service configuration for persistent background operation -->
-<service
-    android:name="org.kivy.android.PythonService"
-    android:process=":voiceservice"
-    android:enabled="true"
-    android:exported="false"
-    android:stopWithTask="false"
-    android:foregroundServiceType="microphone">
-    
-    <intent-filter>
-        <action android:name="org.kivy.android.PythonService" />
-    </intent-filter>
-</service>
+        <!-- Persistent foreground microphone service -->
+        <service
+            android:name="org.kivy.android.PythonService"
+            android:process=":voiceservice"
+            android:enabled="true"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="microphone" />
 
-<!-- Receiver to restart service on boot -->
-<receiver
-    android:name="org.kivy.android.PythonServiceAutoStart"
-    android:enabled="true"
-    android:exported="true">
-    <intent-filter>
-        <action android:name="android.intent.action.BOOT_COMPLETED" />
-        <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-        <category android:name="android.intent.category.DEFAULT" />
-    </intent-filter>
-</receiver>
+        <!-- Restart service on boot -->
+        <receiver
+            android:name="org.kivy.android.PythonServiceAutoStart"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </receiver>
 
-<!-- Activity configuration -->
-<activity
-    android:name="org.kivy.android.PythonActivity"
-    android:configChanges="orientation|keyboardHidden|screenSize"
-    android:screenOrientation="portrait"
-    android:showOnLockScreen="true"
-    android:turnScreenOn="true">
-    
-    <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-    </intent-filter>
-</activity>
+        <!-- Main activity -->
+        <activity
+            android:name="org.kivy.android.PythonActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
 
-<!-- Meta-data for service -->
-<meta-data
-    android:name="SERVICE_NAME"
-    android:value="VoiceService" />
-    
-<meta-data
-    android:name="SERVICE_STICKY"
-    android:value="true" />
+        <!-- Metadata to keep service sticky -->
+        <meta-data android:name="SERVICE_NAME" android:value="VoiceService"/>
+        <meta-data android:name="SERVICE_STICKY" android:value="true"/>
 
+    </application>
+</manifest>
